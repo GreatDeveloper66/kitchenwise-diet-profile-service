@@ -6,16 +6,17 @@ A microservice responsible for storing and managing user diet profiles. Part of 
 
 ## Overview
 
-This service manages each user's dietary profile — the core data used to personalize meal plans throughout the application. It stores information including activity level, diet type, budget preference, age, sex, weight, and height. This data is consumed by the AI meal planning service to generate contextually appropriate meal plans.
+This service manages each user's dietary profile — the core data used to personalize meal plans throughout the application. It stores age, sex, weight, height, activity level, dietary preferences, and budget level. The same object can be posted as-is to kitchenwise-meal-plan-service `/api/meal-plan` to generate a meal plan.
 
 ---
 
 ## Tech Stack
 
 - **Runtime:** Node.js
-- **Language:** TypeScript
+- **Language:** JavaScript (ES modules)
 - **Framework:** Express
-- **Database:** MongoDB
+- **Database:** MongoDB (Mongoose)
+- **Authentication:** JWTs issued by user-auth-service
 
 ---
 
@@ -30,28 +31,50 @@ This service manages each user's dietary profile — the core data used to perso
 
 ## API Endpoints
 
+All routes except `/api/health` require an `Authorization: Bearer <token>` header with a JWT from user-auth-service. The user ID is taken from the token, never from the request body.
+
 | Method | Endpoint | Description |
 |--------|----------|-------------|
-| POST | `api/create-nutritional-profile` | Create a new diet profile |
-| GET | `api/get-nutritional-profile` | Retrieve a user's diet profile |
-| PUT | `api/update-nutritional-profile` | Update a user's diet profile |
-| DELETE | `api/delete-nutritional-profile` | Delete a user's diet profile |
+| GET | `/api/health` | Health check (public) |
+| POST | `/api/create-nutritional-profile` | Create the user's diet profile (returns 201 and the saved profile) |
+| GET | `/api/get-nutritional-profile` | Retrieve the user's diet profile (404 if none) |
+| PATCH | `/api/update-nutritional-profile` | Update the user's diet profile (returns the updated profile) |
+| DELETE | `/api/delete-nutritional-profile` | Delete the user's diet profile |
 
 ---
 
 ## Diet Profile Schema
 
+Request body for create and update. Enum values are case-sensitive.
+
 ```typescript
 {
-  activityFactor: "sedentary" | "lightlyActive" | "moderatelyActive" | "veryActive" | "extraActive"
-  dietType: "normal" | "keto" | "vegan" | "vegetarian" | "high protein"
-  budgetLevel: "minimal" | "normal" | "premium"
   age: number
   sex: "male" | "female"
-  weight: { value: number, unit: "kg" | "lb" }
-  height: { value: number, unit: "cm" | "in" }
+  weight: number   // kg
+  height: number   // cm
+  activityLevel: "sedentary" | "light" | "moderate" | "active" | "very active"
+  dietaryPreferences: ("Normal" | "Keto" | "High Protein" | "Vegetarian" | "Vegan")[]
+  budgetLevel: "Minimal" | "Normal" | "Premium"
 }
 ```
+
+Example:
+
+```json
+{
+  "age": 37, "sex": "female", "weight": 65, "height": 175,
+  "activityLevel": "moderate", "dietaryPreferences": ["Normal"], "budgetLevel": "Normal"
+}
+```
+
+Stored documents also have `_id`, `userId` (from the token), and `createdAt`.
+
+### Known limitations
+
+- `dietaryPreferences` is effectively required on create: its default (`["none"]`) is not an allowed value, so omitting it fails validation.
+- Update does not re-run the enum checks, so invalid values can be saved through PATCH.
+- Create does not stop a user from having more than one profile; get, update, and delete act on the first match.
 
 ---
 
@@ -60,10 +83,12 @@ This service manages each user's dietary profile — the core data used to perso
 Create a `.env` file in the root of the project with the following variables:
 
 ```env
-PORT=3002
-MONGODB_URI=your_mongodb_connection_string
+MONGO_USERNAME=your_mongodb_atlas_username
+MONGO_PASSWORD=your_mongodb_atlas_password
 JWT_SECRET=your_jwt_secret
 ```
+
+`JWT_SECRET` must match the secret used by user-auth-service.
 
 ---
 
@@ -71,7 +96,7 @@ JWT_SECRET=your_jwt_secret
 
 ### Prerequisites
 - Node.js v18+
-- MongoDB instance (local or cloud)
+- MongoDB Atlas account (`config/db.js` builds the connection string for a specific Atlas cluster from `MONGO_USERNAME` and `MONGO_PASSWORD`)
 
 ### Installation
 
@@ -81,18 +106,11 @@ cd kitchenwise-diet-profile-service
 npm install
 ```
 
-### Development
+### Running
 
-```bash
-npm run dev
-```
+The app is deployed on Vercel, which imports the Express app exported from `src/server.js`.
 
-### Production
-
-```bash
-npm run build
-npm start
-```
+`npm run dev` and `npm start` both run `node src/server.js`, but that file does not call `app.listen()`, so the service cannot currently be run locally this way. There is no build step.
 
 ---
 
