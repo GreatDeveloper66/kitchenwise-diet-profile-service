@@ -83,10 +83,13 @@ Stored documents also have `_id`, `userId` (from the token), and `createdAt`.
 Create a `.env` file in the root of the project with the following variables:
 
 ```env
-MONGO_USERNAME=your_mongodb_atlas_username
-MONGO_PASSWORD=your_mongodb_atlas_password
+MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 ```
+
+If `MONGO_URI` is not set, the service temporarily falls back to `MONGO_USERNAME` and `MONGO_PASSWORD` with a hardcoded Atlas host. That fallback will be removed.
+
+If MongoDB can't be reached, the service logs the error and keeps running: `/api/health` still responds, and database routes return 500.
 
 `JWT_SECRET` must match the secret used by user-auth-service.
 
@@ -96,7 +99,7 @@ JWT_SECRET=your_jwt_secret
 
 ### Prerequisites
 - Node.js v18+
-- MongoDB Atlas account (`config/db.js` builds the connection string for a specific Atlas cluster from `MONGO_USERNAME` and `MONGO_PASSWORD`)
+- A MongoDB connection string (`MONGO_URI`)
 
 ### Installation
 
