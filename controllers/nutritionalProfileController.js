@@ -46,6 +46,9 @@ export const createNutritionalProfile = async (req, res) => {
         const savedProfile = await newProfile.save();
         res.status(201).json(savedProfile);
     } catch (error) {
+        if (error.name === 'ValidationError') {
+            return res.status(400).json({ message: 'Invalid nutritional profile', error: error.message });
+        }
         res.status(500).json({ message: 'Error creating nutritional profile', error: error.message });
     }
 }
@@ -87,13 +90,16 @@ export const updateNutritionalProfile = async (req, res) => {
         const updatedProfile = await NutritionalProfile.findOneAndUpdate(
             { userId: decoded.id },
             { age, sex, weight, height, activityLevel, dietaryPreferences, budgetLevel },
-            { new: true }
+            { new: true, runValidators: true }
         );
         if (!updatedProfile) {
             return res.status(404).json({ message: 'Nutritional profile not found' });
         }
         res.status(200).json(updatedProfile);
     } catch (error) {
+        if (error.name === 'ValidationError' || error.name === 'CastError') {
+            return res.status(400).json({ message: 'Invalid nutritional profile', error: error.message });
+        }
         res.status(500).json({ message: 'Error updating nutritional profile', error: error.message });
     }
 };

@@ -45,7 +45,7 @@ All routes except `/api/health` require an `Authorization: Bearer <token>` heade
 
 ## Diet Profile Schema
 
-Request body for create and update. Enum values are case-sensitive.
+Request body for create and update. Enum values are case-sensitive. `dietaryPreferences` is optional on create and defaults to `["Normal"]`. Update changes only the fields you send. Invalid values return `400`.
 
 ```typescript
 {
@@ -72,8 +72,6 @@ Stored documents also have `_id`, `userId` (from the token), and `createdAt`.
 
 ### Known limitations
 
-- `dietaryPreferences` is effectively required on create: its default (`["none"]`) is not an allowed value, so omitting it fails validation.
-- Update does not re-run the enum checks, so invalid values can be saved through PATCH.
 - Create does not stop a user from having more than one profile; get, update, and delete act on the first match.
 
 ---

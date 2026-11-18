@@ -7,7 +7,7 @@ const nutritionalProfileSchema = new mongoose.Schema({
     weight: { type: Number, required: true }, // in kg
     height: { type: Number, required: true }, // in cm
     activityLevel: { type: String, enum: ['sedentary', 'light', 'moderate', 'active', 'very active'], required: true },
-    dietaryPreferences: { type: [String], enum: ['Normal', 'Keto', 'High Protein', 'Vegetarian', 'Vegan'], default: ['none'] },
+    dietaryPreferences: { type: [String], enum: ['Normal', 'Keto', 'High Protein', 'Vegetarian', 'Vegan'], default: ['Normal'] },
     budgetLevel: { type: String, enum: ['Minimal', 'Normal', 'Premium'], required: true },
     createdAt: { type: Date, default: Date.now },
 });
