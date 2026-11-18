@@ -36,7 +36,7 @@ All routes except `/api/health` require an `Authorization: Bearer <token>` heade
 | Method | Endpoint | Description |
 |--------|----------|-------------|
 | GET | `/api/health` | Health check (public) |
-| POST | `/api/create-nutritional-profile` | Create the user's diet profile (returns 201 and the saved profile) |
+| POST | `/api/create-nutritional-profile` | Create the user's diet profile (returns 201 and the saved profile; 409 if the user already has one) |
 | GET | `/api/get-nutritional-profile` | Retrieve the user's diet profile (404 if none) |
 | PATCH | `/api/update-nutritional-profile` | Update the user's diet profile (returns the updated profile) |
 | DELETE | `/api/delete-nutritional-profile` | Delete the user's diet profile |
@@ -70,9 +70,7 @@ Example:
 
 Stored documents also have `_id`, `userId` (from the token), and `createdAt`.
 
-### Known limitations
-
-- Create does not stop a user from having more than one profile; get, update, and delete act on the first match.
+Each user has at most one profile, enforced by a unique index on `userId`. To change an existing profile, use the update route.
 
 ---
 

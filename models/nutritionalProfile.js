@@ -1,7 +1,8 @@
 import { mongoose } from 'mongoose';
 
 const nutritionalProfileSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    // One profile per user. Mongoose builds this unique index on startup (autoIndex).
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
     age: { type: Number, required: true },
     sex: { type: String, enum: ['male', 'female'], required: true },
     weight: { type: Number, required: true }, // in kg

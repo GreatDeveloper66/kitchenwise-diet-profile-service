@@ -24,6 +24,10 @@ export const createNutritionalProfile = async (req, res) => {
         if (!decoded) {
             return res.status(401).json({ message: 'Invalid token' });
         }
+        // One profile per user: use PATCH /api/update-nutritional-profile to change it.
+        if (await NutritionalProfile.exists({ userId: decoded.id })) {
+            return res.status(409).json({ message: 'Nutritional profile already exists' });
+        }
         const {
             age,
             sex,
@@ -48,6 +52,10 @@ export const createNutritionalProfile = async (req, res) => {
     } catch (error) {
         if (error.name === 'ValidationError') {
             return res.status(400).json({ message: 'Invalid nutritional profile', error: error.message });
+        }
+        // Duplicate key from the unique userId index (two creates at the same moment).
+        if (error.code === 11000) {
+            return res.status(409).json({ message: 'Nutritional profile already exists' });
         }
         res.status(500).json({ message: 'Error creating nutritional profile', error: error.message });
     }
