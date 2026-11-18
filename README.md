@@ -87,8 +87,6 @@ MONGO_URI=your_mongodb_connection_string
 JWT_SECRET=your_jwt_secret
 ```
 
-If `MONGO_URI` is not set, the service temporarily falls back to `MONGO_USERNAME` and `MONGO_PASSWORD` with a hardcoded Atlas host. That fallback will be removed.
-
 If MongoDB can't be reached, the service logs the error and keeps running: `/api/health` still responds, and database routes return 500.
 
 `JWT_SECRET` must match the secret used by user-auth-service.
